@@ -9,6 +9,8 @@ type Props = {
   partido: DetallePartido
   prediccionActual: Prediccion | null
   isLocked: boolean
+  faseHabilitada: boolean
+  habilitadoEn: Date | null
   onOptimisticUpdate: (partidoId: string, nueva: ResultadoPartido) => void
   onRevert: (partidoId: string, prev: Prediccion | null) => void
 }
@@ -24,6 +26,19 @@ function formatHora(iso: string): string {
     timeZone: 'UTC',
     hour12: false,
   }).format(new Date(iso)) + ' UTC'
+}
+
+function formatFechaHabilitacion(d: Date): string {
+  const fecha = new Intl.DateTimeFormat('es-AR', {
+    day: 'numeric',
+    month: 'long',
+  }).format(d)
+  const hora = new Intl.DateTimeFormat('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d)
+  return `Se habilita el ${fecha} a las ${hora} (tu zona horaria)`
 }
 
 type Btn = { value: ResultadoPartido; label: string; flagUrl?: string }
@@ -52,7 +67,7 @@ function clasesBoton(
   value: ResultadoPartido,
   prediccionActual: Prediccion | null,
   partido: DetallePartido,
-  isLocked: boolean,
+  effectiveLocked: boolean,
   isPending: boolean
 ): string {
   const base =
@@ -60,7 +75,10 @@ function clasesBoton(
   const estaSeleccionado = prediccionActual?.prediccion === value
   const tieneResultado = partido.resultado_final !== null
 
-  if (isLocked || isPending) {
+  if (effectiveLocked || isPending) {
+    if (estaSeleccionado) {
+      return `${base} border-blue-300 bg-blue-50 text-blue-500 opacity-70`
+    }
     return `${base} border-gray-200 bg-gray-50 text-gray-400 opacity-60`
   }
   if (estaSeleccionado && tieneResultado) {
@@ -81,18 +99,21 @@ export default function TarjetaPrediccion({
   partido,
   prediccionActual,
   isLocked,
+  faseHabilitada,
+  habilitadoEn,
   onOptimisticUpdate,
   onRevert,
 }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
+  const effectiveLocked = isLocked || !faseHabilitada
   const botones = botonesParaPartido(partido)
   const tieneResultado = partido.resultado_final !== null
   const pts = prediccionActual?.puntos_ganados
 
   function handleClick(value: ResultadoPartido) {
-    if (isLocked || isPending) return
+    if (effectiveLocked || isPending) return
     if (prediccionActual?.prediccion === value) return
 
     const prev = prediccionActual
@@ -178,6 +199,18 @@ export default function TarjetaPrediccion({
         <span>{formatHora(partido.fecha_hora)}</span>
       </div>
 
+      {/* Banner de fase no habilitada */}
+      {!faseHabilitada && !isLocked && (
+        <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          <span className="shrink-0">🔒</span>
+          <span>
+            {habilitadoEn
+              ? formatFechaHabilitacion(habilitadoEn)
+              : 'Disponible para predecir 48hs antes del inicio de esta fase'}
+          </span>
+        </div>
+      )}
+
       {/* Botones de predicción */}
       <div
         className={`grid gap-2 ${
@@ -188,8 +221,8 @@ export default function TarjetaPrediccion({
           <button
             key={value}
             onClick={() => handleClick(value)}
-            disabled={isLocked || isPending}
-            className={clasesBoton(value, prediccionActual, partido, isLocked, isPending)}
+            disabled={effectiveLocked || isPending}
+            className={clasesBoton(value, prediccionActual, partido, effectiveLocked, isPending)}
           >
             <span className="flex items-center gap-1.5">
               {flagUrl && (

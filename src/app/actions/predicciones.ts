@@ -1,6 +1,7 @@
 'use server'
 import { getSession } from '@/lib/auth'
 import { isLocked, VALID_PREDICCIONES, type ResultadoPartido } from '@/lib/predicciones'
+import { HORAS_HABILITACION_PREVIA } from '@/lib/constants'
 import { supabase } from '@/lib/supabase/server'
 
 export async function guardarPrediccion(
@@ -18,7 +19,7 @@ export async function guardarPrediccion(
 
   const { data: partido } = await supabase
     .from('detalle_partidos')
-    .select('id, es_eliminatorio')
+    .select('id, fase, es_eliminatorio, fecha_hora')
     .eq('id', partidoId)
     .single()
 
@@ -26,6 +27,23 @@ export async function guardarPrediccion(
 
   if (!partido.es_eliminatorio && (prediccion === 'Penales_L' || prediccion === 'Penales_V')) {
     return { ok: false, error: 'Predicción de penales no válida para partidos de grupos' }
+  }
+
+  if (partido.es_eliminatorio) {
+    const { data: primerPartidoDeFase } = await supabase
+      .from('detalle_partidos')
+      .select('fecha_hora')
+      .eq('fase', partido.fase)
+      .order('fecha_hora', { ascending: true })
+      .limit(1)
+      .single()
+
+    const primerFecha = primerPartidoDeFase?.fecha_hora
+    if (!primerFecha) return { ok: false, error: 'Fase no disponible' }
+
+    const ahora = new Date()
+    const inicio = new Date(new Date(primerFecha).getTime() - HORAS_HABILITACION_PREVIA * 60 * 60 * 1000)
+    if (ahora < inicio) return { ok: false, error: 'Esta fase eliminatoria aún no está disponible para predecir' }
   }
 
   const { id: user_id } = session
