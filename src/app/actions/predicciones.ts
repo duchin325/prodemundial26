@@ -1,6 +1,6 @@
 'use server'
 import { getSession } from '@/lib/auth'
-import { isLocked, VALID_PREDICCIONES, type ResultadoPartido } from '@/lib/predicciones'
+import { VALID_PREDICCIONES, type ResultadoPartido } from '@/lib/predicciones'
 import { HORAS_HABILITACION_PREVIA } from '@/lib/constants'
 import { supabase } from '@/lib/supabase/server'
 
@@ -10,8 +10,6 @@ export async function guardarPrediccion(
 ): Promise<{ ok: boolean; error?: string }> {
   const session = await getSession()
   if (!session) return { ok: false, error: 'No autenticado' }
-
-  if (isLocked()) return { ok: false, error: 'Las predicciones están cerradas' }
 
   if (!VALID_PREDICCIONES.includes(prediccion)) {
     return { ok: false, error: 'Predicción inválida' }
@@ -24,6 +22,12 @@ export async function guardarPrediccion(
     .single()
 
   if (!partido) return { ok: false, error: 'Partido no encontrado' }
+
+  const ahora = new Date()
+  const inicioPartido = new Date(partido.fecha_hora)
+  if (!partido.es_eliminatorio && ahora >= inicioPartido) {
+    return { ok: false, error: 'Este partido ya comenzó, no podés modificar tu predicción' }
+  }
 
   if (!partido.es_eliminatorio && (prediccion === 'Penales_L' || prediccion === 'Penales_V')) {
     return { ok: false, error: 'Predicción de penales no válida para partidos de grupos' }
@@ -41,7 +45,6 @@ export async function guardarPrediccion(
     const primerFecha = primerPartidoDeFase?.fecha_hora
     if (!primerFecha) return { ok: false, error: 'Fase no disponible' }
 
-    const ahora = new Date()
     const inicio = new Date(new Date(primerFecha).getTime() - HORAS_HABILITACION_PREVIA * 60 * 60 * 1000)
     if (ahora < inicio) return { ok: false, error: 'Esta fase eliminatoria aún no está disponible para predecir' }
   }

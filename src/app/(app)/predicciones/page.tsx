@@ -1,10 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { supabase } from '@/lib/supabase/server'
-import { isLocked } from '@/lib/predicciones'
 import type { DetallePartido } from '@/types/fixture'
 import type { Prediccion } from '@/lib/predicciones'
-import BannerLocked from './components/BannerLocked'
 import ListaPredicciones from './components/ListaPredicciones'
 
 export const dynamic = 'force-dynamic'
@@ -33,8 +31,6 @@ export default async function PrediccionesPage() {
     )
   }
 
-  const locked = isLocked()
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6">
@@ -44,12 +40,9 @@ export default async function PrediccionesPage() {
         </p>
       </div>
 
-      {locked && <BannerLocked />}
-
       <ListaPredicciones
         partidos={(partidos ?? []) as DetallePartido[]}
         prediccionesPrevias={(predicciones ?? []) as Prediccion[]}
-        isLocked={locked}
       />
     </div>
   )

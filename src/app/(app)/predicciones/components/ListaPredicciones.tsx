@@ -9,10 +9,9 @@ import TarjetaPrediccion from './TarjetaPrediccion'
 type Props = {
   partidos: DetallePartido[]
   prediccionesPrevias: Prediccion[]
-  isLocked: boolean
 }
 
-export default function ListaPredicciones({ partidos, prediccionesPrevias, isLocked }: Props) {
+export default function ListaPredicciones({ partidos, prediccionesPrevias }: Props) {
   const [prediccionesMap, setPrediccionesMap] = useState<Record<string, Prediccion>>(
     () => Object.fromEntries(prediccionesPrevias.map((p) => [p.partido_id, p]))
   )
@@ -106,7 +105,6 @@ export default function ListaPredicciones({ partidos, prediccionesPrevias, isLoc
                         key={partido.id}
                         partido={partido}
                         prediccionActual={prediccionesMap[partido.id] ?? null}
-                        isLocked={isLocked}
                         faseHabilitada={fasesHabilitadas[partido.fase] ?? true}
                         habilitadoEn={fasesHabilitadoEn[partido.fase] ?? null}
                         onOptimisticUpdate={onOptimisticUpdate}

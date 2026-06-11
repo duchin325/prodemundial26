@@ -1,6 +1,1 @@
-export const PRIMER_PARTIDO_UTC = new Date('2026-06-11T20:00:00Z')
-export const LOCK_HORAS_ANTES = 12
-export const PREDICCIONES_BLOQUEADAS = new Date(
-  PRIMER_PARTIDO_UTC.getTime() - LOCK_HORAS_ANTES * 60 * 60 * 1000
-)
 export const HORAS_HABILITACION_PREVIA = 48

@@ -8,7 +8,6 @@ import { getBanderaUrl } from '@/lib/utils/banderas'
 type Props = {
   partido: DetallePartido
   prediccionActual: Prediccion | null
-  isLocked: boolean
   faseHabilitada: boolean
   habilitadoEn: Date | null
   onOptimisticUpdate: (partidoId: string, nueva: ResultadoPartido) => void
@@ -98,7 +97,6 @@ function clasesBoton(
 export default function TarjetaPrediccion({
   partido,
   prediccionActual,
-  isLocked,
   faseHabilitada,
   habilitadoEn,
   onOptimisticUpdate,
@@ -107,7 +105,8 @@ export default function TarjetaPrediccion({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  const effectiveLocked = isLocked || !faseHabilitada
+  const partidoComenzo = new Date() >= new Date(partido.fecha_hora)
+  const effectiveLocked = (!partido.es_eliminatorio && partidoComenzo) || !faseHabilitada
   const botones = botonesParaPartido(partido)
   const tieneResultado = partido.resultado_final !== null
   const pts = prediccionActual?.puntos_ganados
@@ -199,8 +198,8 @@ export default function TarjetaPrediccion({
         <span>{formatHora(partido.fecha_hora)}</span>
       </div>
 
-      {/* Banner de fase no habilitada */}
-      {!faseHabilitada && !isLocked && (
+      {/* Banner de fase eliminatoria no habilitada aún */}
+      {!faseHabilitada && (
         <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
           <span className="shrink-0">🔒</span>
           <span>
@@ -208,6 +207,14 @@ export default function TarjetaPrediccion({
               ? formatFechaHabilitacion(habilitadoEn)
               : 'Disponible para predecir 48hs antes del inicio de esta fase'}
           </span>
+        </div>
+      )}
+
+      {/* Banner de partido de grupos ya iniciado */}
+      {!partido.es_eliminatorio && partidoComenzo && (
+        <div className="mb-3 flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+          <span className="shrink-0">🔒</span>
+          <span>Este partido ya comenzó</span>
         </div>
       )}
 
