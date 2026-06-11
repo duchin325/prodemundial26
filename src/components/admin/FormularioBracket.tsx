@@ -2,6 +2,7 @@
 import { useState, useTransition } from 'react'
 import type { DetallePartido } from '@/types/fixture'
 import { asignarEquiposPartido } from '@/app/actions/bracket'
+import { formatearFechaHora } from '@/lib/utils/fechas'
 
 export type Equipo = {
   id: string
@@ -52,14 +53,7 @@ function FilaPartido({ partido, equipos }: { partido: DetallePartido; equipos: E
         ? 'Parcialmente asignado'
         : 'Sin asignar'
 
-  const fecha = new Intl.DateTimeFormat('es-AR', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'UTC',
-    hour12: false,
-  }).format(new Date(partido.fecha_hora))
+  const fecha = formatearFechaHora(partido.fecha_hora)
 
   // Cada dropdown excluye el equipo ya seleccionado en el otro
   const opcionesLocal = equipos.filter((e) => e.id !== visitanteId)
@@ -146,7 +140,7 @@ function FilaPartido({ partido, equipos }: { partido: DetallePartido; equipos: E
 
         {/* Fecha */}
         <span className="shrink-0 whitespace-nowrap pt-1 text-xs text-gray-400">
-          {fecha} UTC
+          {fecha} (ARG)
         </span>
 
         {/* Guardar + badge */}

@@ -4,6 +4,7 @@ import type { DetallePartido } from '@/types/fixture'
 import { type Prediccion, type ResultadoPartido } from '@/lib/predicciones'
 import { guardarPrediccion } from '@/app/actions/predicciones'
 import { getBanderaUrl } from '@/lib/utils/banderas'
+import { formatearFechaHora } from '@/lib/utils/fechas'
 
 type Props = {
   partido: DetallePartido
@@ -16,28 +17,21 @@ type Props = {
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
-function formatHora(iso: string): string {
-  return new Intl.DateTimeFormat('es-AR', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'UTC',
-    hour12: false,
-  }).format(new Date(iso)) + ' UTC'
-}
+const TIMEZONE_APP = 'America/Argentina/Buenos_Aires'
 
 function formatFechaHabilitacion(d: Date): string {
   const fecha = new Intl.DateTimeFormat('es-AR', {
+    timeZone: TIMEZONE_APP,
     day: 'numeric',
     month: 'long',
   }).format(d)
   const hora = new Intl.DateTimeFormat('es-AR', {
+    timeZone: TIMEZONE_APP,
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
   }).format(d)
-  return `Se habilita el ${fecha} a las ${hora} (tu zona horaria)`
+  return `Se habilita el ${fecha} a las ${hora} hs (ARG)`
 }
 
 type Btn = { value: ResultadoPartido; label: string; flagUrl?: string }
@@ -195,7 +189,7 @@ export default function TarjetaPrediccion({
         <span>
           {partido.grupo ? `${partido.fase} · ${partido.grupo}` : partido.fase}
         </span>
-        <span>{formatHora(partido.fecha_hora)}</span>
+        <span>{formatearFechaHora(partido.fecha_hora)}</span>
       </div>
 
       {/* Banner de fase eliminatoria no habilitada aún */}
