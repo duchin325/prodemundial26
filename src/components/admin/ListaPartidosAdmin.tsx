@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { PartidoAdmin } from '@/types/admin'
 import type { ResultadoPartido } from '@/lib/predicciones'
 import { getBanderaUrl } from '@/lib/utils/banderas'
+import { formatearFechaHora } from '@/lib/utils/fechas'
 
 const LABEL_RESULTADO: Record<ResultadoPartido, string> = {
   Local: 'Local',
@@ -49,14 +50,7 @@ export default function ListaPartidosAdmin({ partidos }: Props) {
             const tienResultado = partido.resultado_cargado !== null
             const local = partido.local_nombre ?? partido.placeholder_local ?? '?'
             const visitante = partido.visitante_nombre ?? partido.placeholder_visitante ?? '?'
-            const fecha = new Intl.DateTimeFormat('es-AR', {
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-              timeZone: 'UTC',
-              hour12: false,
-            }).format(new Date(partido.fecha_hora))
+            const fecha = formatearFechaHora(partido.fecha_hora)
 
             return (
               <tr key={partido.id} className="hover:bg-gray-50">
@@ -79,7 +73,7 @@ export default function ListaPartidosAdmin({ partidos }: Props) {
                 <td className="whitespace-nowrap px-4 py-3 text-gray-500">
                   {partido.grupo ? `${partido.fase} · ${partido.grupo}` : partido.fase}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-gray-500">{fecha} UTC</td>
+                <td className="whitespace-nowrap px-4 py-3 text-gray-500">{fecha} (ARG)</td>
                 <td className="px-4 py-3">
                   {tienResultado ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">

@@ -1,6 +1,6 @@
 import type { DetallePartido } from '@/types/fixture'
 import { getBanderaUrl } from '@/lib/utils/banderas'
-import HorarioLocal from './HorarioLocal'
+import { formatearFecha, formatearHora } from '@/lib/utils/fechas'
 
 type Props = {
   partido: DetallePartido
@@ -28,24 +28,12 @@ function getResultadoLabel(partido: DetallePartido): string | null {
 
 function labelClases(label: string): string {
   switch (label) {
-    case 'Local':    return 'bg-green-100 text-green-700'
+    case 'Local':     return 'bg-green-100 text-green-700'
     case 'Visitante': return 'bg-amber-100 text-amber-700'
-    case 'Empate':   return 'bg-blue-100 text-blue-700'
-    case 'Penales':  return 'bg-purple-100 text-purple-700'
-    default:         return 'bg-gray-100 text-gray-500'
+    case 'Empate':    return 'bg-blue-100 text-blue-700'
+    case 'Penales':   return 'bg-purple-100 text-purple-700'
+    default:          return 'bg-gray-100 text-gray-500'
   }
-}
-
-function formatearFechaCorta(fechaHora: string): string {
-  return new Intl.DateTimeFormat('es-AR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  })
-    .format(new Date(fechaHora))
-    .replace(/\./g, '')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 export default function TarjetaPartido({ partido }: Props) {
@@ -140,13 +128,9 @@ export default function TarjetaPartido({ partido }: Props) {
 
       {/* Pie — fecha y hora */}
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 border-t border-gray-100 px-4 py-2 text-xs text-gray-500">
-        <span>📅 {formatearFechaCorta(partido.fecha_hora)}</span>
+        <span>📅 {formatearFecha(partido.fecha_hora)}</span>
         <span>·</span>
-        <span>🕔</span>
-        <HorarioLocal
-          fechaHora={partido.fecha_hora}
-          estadioTimezone={partido.estadio_timezone}
-        />
+        <span>🕔 {formatearHora(partido.fecha_hora)} hs (ARG)</span>
       </div>
 
     </div>

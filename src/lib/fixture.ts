@@ -1,4 +1,5 @@
 import type { DetallePartido } from '@/types/fixture'
+import { fechaClave } from '@/lib/utils/fechas'
 
 export const ORDEN_FASES = [
   'Grupos',
@@ -22,7 +23,7 @@ export function agruparPartidosPorFaseYFecha(partidos: DetallePartido[]): GrupoF
   const mapaFases = new Map<string, Map<string, DetallePartido[]>>()
 
   for (const partido of partidos) {
-    const fecha = partido.fecha_hora.slice(0, 10)
+    const fecha = fechaClave(partido.fecha_hora)
 
     if (!mapaFases.has(partido.fase)) {
       mapaFases.set(partido.fase, new Map())
